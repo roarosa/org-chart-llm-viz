@@ -1,12 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-type Item = {
-  id: number;
-  name: string;
-  value: number;
-};
+import { ChatWindow } from '@/components/layout/ChatWindow';
+import { DataDisplay, type Item } from '@/components/layout/DataDisplay';
+import { Section } from '@/components/ui/section';
 
 export function App() {
   const [items, setItems] = useState<Item[]>([]);
@@ -30,48 +25,15 @@ export function App() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_hsl(var(--muted))_0%,_hsl(var(--background))_55%)] px-4 py-12 text-foreground">
-      <section className="mx-auto flex max-w-4xl flex-col gap-8 rounded-3xl border bg-card/90 p-8 shadow-sm backdrop-blur sm:p-10">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-3">
-            <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">
-              Frontend
-            </p>
-            <div className="space-y-2">
-              <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-                LLM Viz
-              </h1>
-              <p className="max-w-2xl text-base text-muted-foreground sm:text-lg">
-                Sample data loaded from the server.
-              </p>
-            </div>
-          </div>
-          <Button size="lg">Button example</Button>
-        </div>
-
-        {error ? (
-          <div className="rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-            {error}
-          </div>
-        ) : null}
-
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((item) => (
-            <Card
-              key={item.id}
-              className="rounded-2xl bg-background transition-colors hover:bg-accent"
-            >
-              <CardHeader className="pb-4">
-                <p className="text-sm text-muted-foreground">Item {item.id}</p>
-                <CardTitle className="text-xl">{item.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-semibold tracking-tight">{item.value}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </section>
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_hsl(var(--muted))_0%,_hsl(var(--background))_55%)] p-4 text-foreground lg:p-6">
+      <div className="flex min-h-[calc(100vh-2rem)] flex-col gap-4 lg:min-h-[calc(100vh-3rem)] lg:flex-row lg:gap-6">
+        <Section className="lg:max-w-sm lg:flex-1">
+          <ChatWindow />
+        </Section>
+        <Section className="min-w-0 flex-1">
+          <DataDisplay items={items} error={error} />
+        </Section>
+      </div>
     </main>
   );
 }
