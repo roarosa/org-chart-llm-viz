@@ -12,6 +12,23 @@ export function ChatWindow({ messages, sendMessage }: ChatWindowProps) {
   const [draftMessage, setDraftMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const submitMessage = () => {
+    const trimmedMessage = draftMessage.trim();
+    if (!trimmedMessage) {
+      return;
+    }
+
+    sendMessage(trimmedMessage);
+    setDraftMessage('');
+
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      return;
+    }
+
+    textarea.style.height = 'auto';
+  };
+
   const handleChange = (value: string) => {
     setDraftMessage(value);
 
@@ -45,15 +62,25 @@ export function ChatWindow({ messages, sendMessage }: ChatWindowProps) {
           </p>
         </div>
       ))}
-      <Textarea
-        className="min-h-0 max-h-32 w-full max-w-lg resize-none overflow-y-auto"
-        onChange={(event) => handleChange(event.target.value)}
-        ref={textareaRef}
-        rows={1}
-        value={draftMessage}
-      />
       <div className="flex justify-end">
-        <Button onClick={() => sendMessage(draftMessage)}>Send</Button>
+        <div className="w-full max-w-2xl">
+          <Textarea
+            className="min-h-0 max-h-32 resize-none overflow-y-auto"
+            onChange={(event) => handleChange(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                submitMessage();
+              }
+            }}
+            ref={textareaRef}
+            rows={1}
+            value={draftMessage}
+          />
+        </div>
+      </div>
+      <div className="flex justify-end">
+        <Button onClick={submitMessage}>Send</Button>
       </div>
     </div>
   );
