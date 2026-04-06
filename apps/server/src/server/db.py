@@ -75,6 +75,7 @@ def list_employees(connection: sqlite3.Connection) -> list[dict[str, int | str |
             start_date,
             work_location
         FROM employees
+        WHERE department = 'Engineering'
         ORDER BY id ASC
         """
     )

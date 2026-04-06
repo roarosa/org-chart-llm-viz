@@ -8,3 +8,8 @@ export type Employee = {
   start_date: string;
   work_location: string;
 };
+
+export type Message = {
+  role: 'user' | 'assistant';
+  content: string;
+};
