@@ -13,7 +13,7 @@
     "lint": "npm --workspace apps/client run lint && cd apps/server && .venv/bin/ruff check .",
     "format": "npm --workspace apps/client run format && cd apps/server && .venv/bin/ruff format .",
     "test": "cd apps/server && PYTHONPATH=src .venv/bin/python -m pytest",
-    "client:add": "npx shadcn@latest add -c apps/client"
+    "client:add": "npx shadcn@4.1.2 add -c apps/client"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
