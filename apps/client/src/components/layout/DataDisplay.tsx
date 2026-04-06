@@ -8,7 +8,7 @@ type DataDisplayProps = {
 
 export function DataDisplay({ employees, error }: DataDisplayProps) {
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto pr-1">
+    <div className="flex flex-col gap-8 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1">
       <div className="space-y-3">
         <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">
           Frontend
