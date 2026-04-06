@@ -1,0 +1,20 @@
+{
+  "name": "llm-viz",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/client"
+  ],
+  "scripts": {
+    "setup:hooks": "git config core.hooksPath .githooks",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:client": "npm --workspace apps/client run dev",
+    "dev:server": "cd apps/server && .venv/bin/python -m uvicorn server.main:app --app-dir src --reload --port 8000",
+    "lint": "npm --workspace apps/client run lint && cd apps/server && .venv/bin/ruff check .",
+    "format": "npm --workspace apps/client run format && cd apps/server && .venv/bin/ruff format .",
+    "test": "cd apps/server && PYTHONPATH=src .venv/bin/python -m pytest"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
