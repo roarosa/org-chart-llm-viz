@@ -8,7 +8,7 @@ load_dotenv()
 
 class Settings(BaseSettings):
     app_name: str = "llm-viz-server"
-    data_file: str = "data/items.json"
+    data_file: str = "data/employees.json"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

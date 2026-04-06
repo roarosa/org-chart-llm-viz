@@ -1,19 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-export type Item = {
-  id: number;
-  name: string;
-  value: number;
-};
+import { Employee } from '@/types';
 
 type DataDisplayProps = {
-  items: Item[];
+  employees: Employee[];
   error: string | null;
 };
 
-export function DataDisplay({ items, error }: DataDisplayProps) {
+export function DataDisplay({ employees, error }: DataDisplayProps) {
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex min-h-0 flex-1 flex-col gap-8 overflow-y-auto pr-1">
       <div className="space-y-3">
         <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">
           Frontend
@@ -35,17 +30,18 @@ export function DataDisplay({ items, error }: DataDisplayProps) {
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {items.map((item) => (
+        {employees.map((employee) => (
           <Card
-            key={item.id}
+            key={employee.id}
             className="rounded-2xl bg-background transition-colors hover:bg-accent"
           >
             <CardHeader className="pb-4">
-              <p className="text-sm text-muted-foreground">Item {item.id}</p>
-              <CardTitle className="text-xl">{item.name}</CardTitle>
+              <p className="text-sm text-muted-foreground">Employee {employee.id}</p>
+              <CardTitle className="text-xl">{employee.full_name}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-semibold tracking-tight">{item.value}</p>
+              <p className="tracking-tight">{employee.title}</p>
+              <p className="tracking-tight text-sm">{employee.department}</p>
             </CardContent>
           </Card>
         ))}

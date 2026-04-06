@@ -4,7 +4,7 @@ from typing import Any
 from fastapi import FastAPI
 
 from server.config import Settings
-from server.db import create_connection, initialize_db, list_items
+from server.db import create_connection, initialize_db, list_employees
 
 connection = create_connection()
 
@@ -24,9 +24,9 @@ def create_app() -> FastAPI:
     def health() -> dict[str, str]:
         return {"status": "ok"}
 
-    @app.get("/api/items")
-    def get_items() -> dict[str, list[dict[str, Any]]]:
-        return {"items": list_items(connection)}
+    @app.get("/api/employees")
+    def get_employees() -> dict[str, list[dict[str, Any]]]:
+        return {"employees": list_employees(connection)}
 
     return app
 

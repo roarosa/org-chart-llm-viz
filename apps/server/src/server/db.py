@@ -14,10 +14,15 @@ def create_connection() -> sqlite3.Connection:
 def initialize_db(connection: sqlite3.Connection, data_file: Path | None = None) -> None:
     connection.execute(
         """
-        CREATE TABLE IF NOT EXISTS items (
+        CREATE TABLE IF NOT EXISTS employees (
             id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL,
-            value INTEGER NOT NULL
+            full_name TEXT NOT NULL,
+            work_email TEXT NOT NULL,
+            title TEXT NOT NULL,
+            department TEXT NOT NULL,
+            manager_id INTEGER,
+            start_date TEXT NOT NULL,
+            work_location TEXT NOT NULL
         )
         """
     )
@@ -26,11 +31,51 @@ def initialize_db(connection: sqlite3.Connection, data_file: Path | None = None)
     with resolved_data_file.open("r", encoding="utf-8") as handle:
         payload = json.load(handle)
 
-    rows = [(item["id"], item["name"], item["value"]) for item in payload.get("items", [])]
-    connection.executemany("INSERT INTO items(id, name, value) VALUES(?, ?, ?)", rows)
+    rows = [
+        (
+            employee["id"],
+            employee["full_name"],
+            employee["work_email"],
+            employee["title"],
+            employee["department"],
+            employee["manager_id"],
+            employee["start_date"],
+            employee["work_location"],
+        )
+        for employee in payload.get("employees", [])
+    ]
+    connection.executemany(
+        """
+        INSERT INTO employees(
+            id,
+            full_name,
+            work_email,
+            title,
+            department,
+            manager_id,
+            start_date,
+            work_location
+        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        rows,
+    )
     connection.commit()
 
 
-def list_items(connection: sqlite3.Connection) -> list[dict[str, int | str]]:
-    cursor = connection.execute("SELECT id, name, value FROM items ORDER BY id ASC")
+def list_employees(connection: sqlite3.Connection) -> list[dict[str, int | str | None]]:
+    cursor = connection.execute(
+        """
+        SELECT
+            id,
+            full_name,
+            work_email,
+            title,
+            department,
+            manager_id,
+            start_date,
+            work_location
+        FROM employees
+        ORDER BY id ASC
+        """
+    )
     return [dict(row) for row in cursor.fetchall()]
