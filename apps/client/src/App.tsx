@@ -65,7 +65,7 @@ export function App() {
   return (
     <main className="bg-[radial-gradient(circle_at_top,_hsl(var(--muted))_0%,_hsl(var(--background))_55%)] p-4 text-foreground lg:h-screen lg:overflow-hidden lg:p-6">
       <div className="flex flex-col gap-4 lg:h-full lg:min-h-0 lg:flex-row lg:gap-6">
-        <Section className="lg:max-w-sm lg:flex-1 p-6">
+        <Section className="lg:min-h-0 lg:max-w-sm lg:flex-1 p-6">
           <ChatWindow messages={messages} sendMessage={sendMessage} />
         </Section>
         <Section className="min-w-0 flex-1 lg:min-h-0 lg:overflow-hidden">
