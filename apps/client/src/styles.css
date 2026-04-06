@@ -1,35 +1,69 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", monospace;
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
 :root {
-  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color: #1f2937;
-  background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+  --background: 45 33% 98%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --primary: 210 79% 46%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 40 50% 94%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 45 40% 94%;
+  --muted-foreground: 215 16% 40%;
+  --accent: 32 71% 93%;
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 72% 51%;
+  --border: 214 25% 88%;
+  --input: 214 25% 88%;
+  --ring: 210 79% 46%;
+  --radius: 1rem;
 }
 
-* {
-  box-sizing: border-box;
-}
+@layer base {
+  * {
+    @apply border-border;
+  }
 
-body {
-  margin: 0;
-  min-height: 100vh;
-}
+  html {
+    font-family: var(--font-sans);
+  }
 
-.app {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 3rem 1rem;
-}
+  body {
+    @apply min-h-screen bg-background text-foreground antialiased;
+    margin: 0;
+  }
 
-h1 {
-  margin: 0;
-  font-size: clamp(2rem, 4vw, 2.8rem);
-}
-
-.error {
-  color: #b91c1c;
-}
-
-ul {
-  padding-left: 1.25rem;
+  #root {
+    min-height: 100vh;
+  }
 }
