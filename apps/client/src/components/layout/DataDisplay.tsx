@@ -13,7 +13,7 @@ type DataDisplayProps = {
 
 export function DataDisplay({ items, error }: DataDisplayProps) {
   return (
-    <>
+    <div className="flex flex-col gap-8">
       <div className="space-y-3">
         <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">
           Frontend
@@ -50,6 +50,6 @@ export function DataDisplay({ items, error }: DataDisplayProps) {
           </Card>
         ))}
       </div>
-    </>
+    </div>
   );
 }
