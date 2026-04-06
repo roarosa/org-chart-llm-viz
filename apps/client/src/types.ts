@@ -13,3 +13,14 @@ export type Message = {
   role: 'user' | 'assistant';
   content: string;
 };
+
+export type ListView = {
+  type: 'list';
+  title: string;
+  data: Employee[];
+};
+
+export type ChatResponse = {
+  response: string;
+  view?: ListView | null;
+};

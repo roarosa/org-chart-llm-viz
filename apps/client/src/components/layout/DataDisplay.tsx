@@ -1,25 +1,23 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Employee } from '@/types';
+import { ListView } from '@/types';
 
 type DataDisplayProps = {
-  employees: Employee[];
-  error: string | null;
+  title: string;
+  data?: ListView['data'];
+  error?: string;
 };
 
-export function DataDisplay({ employees, error }: DataDisplayProps) {
+export function DataDisplay({ title, data, error }: DataDisplayProps) {
   return (
     <div className="flex flex-col gap-8 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1">
       <div className="space-y-3">
         <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">
-          Frontend
+          visualization
         </p>
         <div className="space-y-2">
           <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-            LLM Viz
+            {title}
           </h1>
-          <p className="max-w-2xl text-base text-muted-foreground sm:text-lg">
-            Sample data loaded from the server.
-          </p>
         </div>
       </div>
 
@@ -30,7 +28,7 @@ export function DataDisplay({ employees, error }: DataDisplayProps) {
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        {employees.map((employee) => (
+        {data?.map((employee) => (
           <Card
             key={employee.id}
             className="rounded-2xl bg-background transition-colors hover:bg-accent"

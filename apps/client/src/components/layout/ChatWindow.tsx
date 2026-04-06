@@ -5,20 +5,20 @@ import type { Message } from '@/types';
 
 type ChatWindowProps = {
   messages: Message[];
-  sendMessage: (message: string) => void;
+  sendMessage: (message: string) => Promise<void>;
 };
 
 export function ChatWindow({ messages, sendMessage }: ChatWindowProps) {
   const [draftMessage, setDraftMessage] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const submitMessage = () => {
+  const submitMessage = async () => {
     const trimmedMessage = draftMessage.trim();
     if (!trimmedMessage) {
       return;
     }
 
-    sendMessage(trimmedMessage);
+    await sendMessage(trimmedMessage);
     setDraftMessage('');
 
     const textarea = textareaRef.current;
@@ -70,7 +70,7 @@ export function ChatWindow({ messages, sendMessage }: ChatWindowProps) {
             onKeyDown={(event) => {
               if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault();
-                submitMessage();
+                void submitMessage();
               }
             }}
             ref={textareaRef}
@@ -80,7 +80,7 @@ export function ChatWindow({ messages, sendMessage }: ChatWindowProps) {
         </div>
       </div>
       <div className="flex justify-end">
-        <Button onClick={submitMessage}>Send</Button>
+        <Button onClick={() => void submitMessage()}>Send</Button>
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import json
 import sqlite3
 from pathlib import Path
+from typing import Any
 
 from server.config import resolve_data_file
 
@@ -62,9 +63,10 @@ def initialize_db(connection: sqlite3.Connection, data_file: Path | None = None)
     connection.commit()
 
 
-def list_employees(connection: sqlite3.Connection) -> list[dict[str, int | str | None]]:
-    cursor = connection.execute(
-        """
+def list_employees(
+    connection: sqlite3.Connection, department: str | None = None
+) -> list[dict[str, Any]]:
+    query = """
         SELECT
             id,
             full_name,
@@ -75,8 +77,12 @@ def list_employees(connection: sqlite3.Connection) -> list[dict[str, int | str |
             start_date,
             work_location
         FROM employees
-        WHERE department = 'Engineering'
-        ORDER BY id ASC
-        """
-    )
+    """
+    params: tuple[str, ...] = ()
+    if department is not None:
+        query += " WHERE department = ?"
+        params = (department,)
+
+    query += " ORDER BY id ASC"
+    cursor = connection.execute(query, params)
     return [dict(row) for row in cursor.fetchall()]
