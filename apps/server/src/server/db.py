@@ -9,8 +9,10 @@ from sqlalchemy import (
     MetaData,
     String,
     Table,
+    and_,
     create_engine,
     delete,
+    func,
     insert,
     select,
 )
@@ -70,9 +72,63 @@ def initialize_db(connection: Connection, data_file: Path | None = None) -> None
     connection.commit()
 
 
-def list_employees(connection: Connection, department: str | None = None) -> list[dict[str, Any]]:
-    query = select(employees_table).order_by(employees_table.c.id.asc())
-    if department is not None:
-        query = query.where(employees_table.c.department == department)
+def list_employees(connection: Connection) -> list[dict[str, Any]]:
+    return search_employees(connection, limit=None)
+
+
+def search_employees(
+    connection: Connection,
+    *,
+    name_query: str | None = None,
+    employee_id: int | None = None,
+    work_email: str | None = None,
+    title: str | None = None,
+    department: str | None = None,
+    manager_id: int | None = None,
+    work_location: str | None = None,
+    start_date_on_or_after: str | None = None,
+    start_date_on_or_before: str | None = None,
+    limit: int | None = 25,
+) -> list[dict[str, Any]]:
+    conditions = []
+
+    if employee_id is not None:
+        conditions.append(employees_table.c.id == employee_id)
+
+    if name_query:
+        for token in name_query.lower().split():
+            conditions.append(func.lower(employees_table.c.full_name).like(f"%{token}%"))
+
+    if work_email:
+        conditions.append(func.lower(employees_table.c.work_email).like(f"%{work_email.lower()}%"))
+
+    if title:
+        conditions.append(func.lower(employees_table.c.title).like(f"%{title.lower()}%"))
+
+    if department:
+        conditions.append(func.lower(employees_table.c.department) == department.lower())
+
+    if manager_id is not None:
+        conditions.append(employees_table.c.manager_id == manager_id)
+
+    if work_location:
+        conditions.append(
+            func.lower(employees_table.c.work_location).like(f"%{work_location.lower()}%")
+        )
+
+    if start_date_on_or_after:
+        conditions.append(employees_table.c.start_date >= start_date_on_or_after)
+
+    if start_date_on_or_before:
+        conditions.append(employees_table.c.start_date <= start_date_on_or_before)
+
+    query = select(employees_table)
+    if conditions:
+        query = query.where(and_(*conditions))
+
+    query = query.order_by(employees_table.c.id.asc())
+    if limit is not None:
+        query = query.limit(limit)
+
     cursor = connection.execute(query)
     return [dict(row) for row in cursor.mappings().all()]

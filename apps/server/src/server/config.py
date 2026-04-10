@@ -9,6 +9,8 @@ load_dotenv()
 class Settings(BaseSettings):
     app_name: str = "llm-viz-server"
     data_file: str = "data/employees.json"
+    openai_api_key: str | None = None
+    openai_model: str = "gpt-5-mini"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
