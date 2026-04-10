@@ -1,88 +1,78 @@
 import json
-import sqlite3
 from pathlib import Path
 from typing import Any
 
+from sqlalchemy import (
+    CheckConstraint,
+    Column,
+    Integer,
+    MetaData,
+    String,
+    Table,
+    create_engine,
+    delete,
+    insert,
+    select,
+)
+from sqlalchemy.engine import Connection
+from sqlalchemy.pool import StaticPool
+
 from server.config import resolve_data_file
 
+metadata = MetaData()
 
-def create_connection() -> sqlite3.Connection:
-    connection = sqlite3.connect(":memory:", check_same_thread=False)
-    connection.row_factory = sqlite3.Row
-    return connection
+employees_table = Table(
+    "employees",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("full_name", String, nullable=False),
+    Column("work_email", String, nullable=False),
+    Column("title", String, nullable=False),
+    Column("department", String, nullable=False),
+    Column("manager_id", Integer, nullable=True),
+    Column("start_date", String, nullable=False),
+    Column("work_location", String, nullable=False),
+    CheckConstraint("start_date GLOB '????-??-??'", name="employees_start_date_iso_check"),
+)
 
 
-def initialize_db(connection: sqlite3.Connection, data_file: Path | None = None) -> None:
-    connection.execute(
-        """
-        CREATE TABLE IF NOT EXISTS employees (
-            id INTEGER PRIMARY KEY,
-            full_name TEXT NOT NULL,
-            work_email TEXT NOT NULL,
-            title TEXT NOT NULL,
-            department TEXT NOT NULL,
-            manager_id INTEGER,
-            start_date TEXT NOT NULL,
-            work_location TEXT NOT NULL
-        )
-        """
+def create_connection() -> Connection:
+    engine = create_engine(
+        "sqlite+pysqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
     )
+    return engine.connect()
 
+
+def initialize_db(connection: Connection, data_file: Path | None = None) -> None:
+    metadata.create_all(connection)
     resolved_data_file = data_file or resolve_data_file()
     with resolved_data_file.open("r", encoding="utf-8") as handle:
         payload = json.load(handle)
 
     rows = [
-        (
-            employee["id"],
-            employee["full_name"],
-            employee["work_email"],
-            employee["title"],
-            employee["department"],
-            employee["manager_id"],
-            employee["start_date"],
-            employee["work_location"],
-        )
+        {
+            "id": employee["id"],
+            "full_name": employee["full_name"],
+            "work_email": employee["work_email"],
+            "title": employee["title"],
+            "department": employee["department"],
+            "manager_id": employee["manager_id"],
+            "start_date": employee["start_date"],
+            "work_location": employee["work_location"],
+        }
         for employee in payload.get("employees", [])
     ]
-    connection.executemany(
-        """
-        INSERT INTO employees(
-            id,
-            full_name,
-            work_email,
-            title,
-            department,
-            manager_id,
-            start_date,
-            work_location
-        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        rows,
-    )
+    connection.execute(delete(employees_table))
+    if rows:
+        connection.execute(insert(employees_table), rows)
     connection.commit()
 
 
-def list_employees(
-    connection: sqlite3.Connection, department: str | None = None
-) -> list[dict[str, Any]]:
-    query = """
-        SELECT
-            id,
-            full_name,
-            work_email,
-            title,
-            department,
-            manager_id,
-            start_date,
-            work_location
-        FROM employees
-    """
-    params: tuple[str, ...] = ()
+def list_employees(connection: Connection, department: str | None = None) -> list[dict[str, Any]]:
+    query = select(employees_table).order_by(employees_table.c.id.asc())
     if department is not None:
-        query += " WHERE department = ?"
-        params = (department,)
-
-    query += " ORDER BY id ASC"
-    cursor = connection.execute(query, params)
-    return [dict(row) for row in cursor.fetchall()]
+        query = query.where(employees_table.c.department == department)
+    cursor = connection.execute(query)
+    return [dict(row) for row in cursor.mappings().all()]
