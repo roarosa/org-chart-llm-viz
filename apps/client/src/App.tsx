@@ -8,7 +8,7 @@ export function App() {
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: 'Hello! How can I help you today?' },
   ]);
-  const [view, setView] = useState<ListView | undefined>();
+  const [viewState, setViewState] = useState<{ view: ListView; viewId: number } | undefined>();
   const [error, setError] = useState<string | undefined>();
 
   useEffect(() => {
@@ -19,10 +19,13 @@ export function App() {
           throw new Error(`Request failed: ${response.status}`);
         }
         const payload = (await response.json()) as { employees: Employee[] };
-        setView({
-          type: 'list',
-          title: 'All employees',
-          data: payload.employees,
+        setViewState({
+          view: {
+            type: 'list',
+            title: 'All employees',
+            data: payload.employees,
+          },
+          viewId: 0,
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error');
@@ -54,13 +57,19 @@ export function App() {
         { role: 'assistant', content: payload.response },
       ]);
       if (payload.view) {
-        setView(payload.view);
+        const newView = payload.view;
+        setViewState((prev) => ({
+          view: newView,
+          viewId: (prev?.viewId ?? -1) + 1,
+        }));
       }
       setError(undefined);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     }
   };
+
+  const { view, viewId } = viewState || {};
 
   return (
     <main className="bg-[radial-gradient(circle_at_top,_hsl(var(--muted))_0%,_hsl(var(--background))_55%)] p-4 text-foreground lg:h-screen lg:overflow-hidden lg:p-6">
@@ -69,7 +78,16 @@ export function App() {
           <ChatWindow messages={messages} sendMessage={sendMessage} />
         </Section>
         <Section className="min-w-0 flex-1 lg:min-h-0 lg:overflow-hidden">
-          <DataDisplay data={view?.data} error={error} title={view?.title ?? 'Employees'} />
+          {view && viewId ? (
+            <DataDisplay
+              data={view.data}
+              title={view.title ?? 'Employees'}
+              viewId={viewId ?? -1}
+              error={error}
+            />
+          ) : (
+            <DataDisplay error={error} />
+          )}
         </Section>
       </div>
     </main>
