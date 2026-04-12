@@ -7,7 +7,7 @@ const Section = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivEle
     <div
       ref={ref}
       className={cn(
-        'flex flex-col rounded-3xl border bg-card/90 p-8 shadow-sm backdrop-blur',
+        'flex flex-col rounded-3xl border bg-neutral-100/90 p-8 shadow-sm backdrop-blur',
         className,
       )}
       {...props}

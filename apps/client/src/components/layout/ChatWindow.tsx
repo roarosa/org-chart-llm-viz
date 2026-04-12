@@ -132,7 +132,9 @@ function MessageBubble({
       <div
         className={cn(
           'max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm',
-          role === 'assistant' ? 'bg-muted text-foreground' : 'bg-primary text-primary-foreground',
+          role === 'assistant'
+            ? 'bg-neutral-50 text-neutral-700'
+            : 'bg-primary-500 text-neutral-100',
           className,
         )}
       >
@@ -147,9 +149,9 @@ function LoadingDots() {
     <span aria-hidden="true" className="inline-flex items-center gap-1.5">
       {[0, 150, 300].map((delay) => (
         <span className="relative block size-1.5" key={delay}>
-          <span className="absolute inset-0 rounded-full bg-muted-foreground/10" />
+          <span className="absolute inset-0 rounded-full bg-neutral-200/10" />
           <span
-            className="absolute inset-0 rounded-full bg-primary animate-pulse"
+            className="absolute inset-0 rounded-full bg-neutral-500 animate-pulse"
             style={{ animationDelay: `${delay}ms` }}
           />
         </span>

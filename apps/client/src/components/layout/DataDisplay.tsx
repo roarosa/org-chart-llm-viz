@@ -22,7 +22,7 @@ export function DataDisplay({ title, data, viewId, error }: DataDisplayProps) {
   return (
     <div className="flex flex-col gap-8 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1">
       <div className="space-y-3">
-        <p className="text-sm font-medium uppercase tracking-[0.24em] text-muted-foreground">
+        <p className="text-sm font-medium uppercase tracking-[0.24em] text-neutral-500">
           visualization
         </p>
         <div className="space-y-2">
@@ -33,7 +33,7 @@ export function DataDisplay({ title, data, viewId, error }: DataDisplayProps) {
       </div>
 
       {error ? (
-        <div className="rounded-2xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+        <div className="rounded-2xl border border-destructive-300 bg-destructive-500/10 px-4 py-3 text-sm text-destructive-500">
           {error}
         </div>
       ) : null}
@@ -54,9 +54,9 @@ export function DataDisplay({ title, data, viewId, error }: DataDisplayProps) {
                   }
             }
           >
-            <Card className="rounded-2xl bg-background transition-colors hover:bg-accent">
+            <Card className="rounded-2xl bg-neutral-50 transition-colors hover:bg-neutral-100">
               <CardHeader className="pb-4">
-                <p className="text-sm text-muted-foreground">Employee {employee.id}</p>
+                <p className="text-sm text-neutral-500">Employee {employee.id}</p>
                 <CardTitle className="text-xl">{employee.full_name}</CardTitle>
               </CardHeader>
               <CardContent>
