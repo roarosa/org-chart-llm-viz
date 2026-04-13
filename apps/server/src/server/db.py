@@ -76,6 +76,11 @@ def list_employees(connection: Connection) -> list[dict[str, Any]]:
     return search_employees(connection, limit=None)
 
 
+def get_employees(connection: Connection, ids: list[int]) -> list[dict[str, Any]]:
+    cursor = connection.execute(select(employees_table).where(employees_table.c.id.in_(ids)))
+    return [dict(row) for row in cursor.mappings().all()]
+
+
 def search_employees(
     connection: Connection,
     *,

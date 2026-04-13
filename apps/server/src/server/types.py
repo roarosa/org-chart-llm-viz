@@ -60,3 +60,15 @@ class SearchPeopleArgs(BaseModel):
     @classmethod
     def zero_to_none(cls, value):
         return None if value == 0 else value
+
+
+class ModelView(BaseModel):
+    type: Literal["list"]
+    title: str
+    data: list[int]
+
+
+class ModelOutput(BaseModel):
+    response: str
+    reasoning: str
+    view: ModelView | None = None

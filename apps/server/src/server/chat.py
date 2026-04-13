@@ -4,15 +4,39 @@ from openai import OpenAI
 from sqlalchemy.engine import Connection
 
 from server.config import Settings
-from server.db import search_employees
-from server.types import ChatResponse, Employee, ListView, Message, SearchPeopleArgs
+from server.db import get_employees, search_employees
+from server.types import ChatResponse, Employee, ListView, Message, ModelOutput, SearchPeopleArgs
 
 SYSTEM_PROMPT = """
-You are an assistant for an employee directory.
+You are an assistant for an employee directory. You take user questions and response
+with a JSON that provides text answers and optionally a helpful visualization.
 Use the search_people tool whenever the user asks about employees, people, titles, departments,
 locations, managers, or dates. Never invent employee records or counts.
 Keep answers concise and grounded in the tool results.
 Only respond to the user's original question, do not suggest follow-up questions.
+
+# Output
+Output your response as JSON. If the answer to the user involves a set of people, then include
+a view object with a list of employee ids and a descriptive title. 
+
+## Requirements
+* Only include ids that you have received from the search_people tool
+* Include a reasoning string that explains why you gave the answer
+* The response will be rendered in a chat without markdown formatting, so only include plain text
+* Don't include lists of employees in the text response. Only include aggregate data like the counts
+and reference the returned visualzation if relevant.
+* The only view type supported is "list". If you return a view then it must include this.
+
+## Format
+{
+    "response": string, // The text answer to the user's question.
+    "reasoning": string, // The reasoning that led you to the answer and view
+    "view": null | {
+        "type": "list",
+        "title": string, // A descriptive title for the view.
+        "data": int[], // A list of employee ids.
+    },
+}
 """.strip()
 
 SEARCH_PEOPLE_TOOL = {
@@ -68,23 +92,18 @@ class OpenAIChatService:
 
     def run(self, messages: list[Message]) -> ChatResponse:
         input_items = [self._message_to_input_item(message) for message in messages]
-        latest_view: ListView | None = None
-        # previous_response_id: str | None = None
 
         while True:
-            print("~~~~INPUT ITEMS~~~~\n", input_items)
+            print("Chat loop:\n", input_items)
             request_kwargs = {
                 "model": self._model,
                 "input": input_items,
                 "instructions": SYSTEM_PROMPT,
                 "tools": [SEARCH_PEOPLE_TOOL],
             }
-            # if previous_response_id is not None:
-            #     request_kwargs["previous_response_id"] = previous_response_id
 
             response = self._client.responses.create(**request_kwargs)
             input_items += response.output
-            # previous_response_id = response.id
 
             tool_outputs: list[dict[str, str]] = []
             for output_item in response.output:
@@ -92,22 +111,34 @@ class OpenAIChatService:
                     continue
 
                 tool_result = self._execute_tool(output_item.name, output_item.arguments)
-                if tool_result.view is not None:
-                    latest_view = tool_result.view
-
                 tool_outputs.append(
                     {
                         "type": "function_call_output",
                         "call_id": output_item.call_id,
-                        "output": tool_result.output,
+                        "output": tool_result,
                     }
                 )
 
             if not tool_outputs:
+                results = None
+                try:
+                    results = ModelOutput.model_validate_json(response.output_text)
+                except json.JSONDecodeError:
+                    print(f"Invalid JSON response:\n{response.output_text}")
+                    return ChatResponse(
+                        response="I failed to process your request. :(",
+                        view=None,
+                    )
+
+                employees = [
+                    Employee(**employee)
+                    for employee in get_employees(self._connection, results.view.data)
+                ]
+                result_view = ListView(type="list", title=results.view.title, data=employees)
+                print("Successful model output:\n", json.dumps(results.model_dump(), indent=2))
                 return ChatResponse(
-                    response=response.output_text
-                    or "I couldn't produce a response from the employee data.",
-                    view=latest_view,
+                    response=results.response,
+                    view=result_view,
                 )
 
             input_items += tool_outputs
@@ -120,7 +151,7 @@ class OpenAIChatService:
             "content": [{"type": content_type, "text": message.content}],
         }
 
-    def _execute_tool(self, tool_name: str, arguments_json: str) -> "_ToolResult":
+    def _execute_tool(self, tool_name: str, arguments_json: str) -> str:
         if tool_name != "search_people":
             raise ValueError(f"Unsupported tool call: {tool_name}")
 
@@ -142,24 +173,10 @@ class OpenAIChatService:
             )
         ]
 
-        title_parts = ["Employee results"]
-        if args.department:
-            title_parts = [f"{args.department} employees"]
-        elif args.name_query:
-            title_parts = [f"People matching '{args.name_query}'"]
-
-        view = ListView(type="list", title=title_parts[0], data=employees)
         output = json.dumps(
             {
                 "count": len(employees),
                 "employees": [employee.model_dump() for employee in employees],
-                "title": view.title,
             }
         )
-        return _ToolResult(output=output, view=view)
-
-
-class _ToolResult:
-    def __init__(self, *, output: str, view: ListView | None = None):
-        self.output = output
-        self.view = view
+        return output
