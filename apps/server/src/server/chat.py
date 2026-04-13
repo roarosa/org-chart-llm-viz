@@ -4,16 +4,22 @@ from openai import OpenAI
 from sqlalchemy.engine import Connection
 
 from server.config import Settings
-from server.db import get_employees, search_employees
+from server.db import get_departments, get_employees, get_locations, search_employees
 from server.types import ChatResponse, Employee, ListView, Message, ModelOutput, SearchPeopleArgs
 
 SYSTEM_PROMPT = """
 You are an assistant for an employee directory. You take user questions and response
 with a JSON that provides text answers and optionally a helpful visualization.
-Use the search_people tool whenever the user asks about employees, people, titles, departments,
+* Use the search_people tool whenever the user asks about employees, people, titles, departments,
 locations, managers, or dates. Never invent employee records or counts.
-Keep answers concise and grounded in the tool results.
-Only respond to the user's original question, do not suggest follow-up questions.
+* The available locations and departments are listed below. Only use these values when
+calling the search_people tool with a location or department filter.
+
+## Locations
+{locations}
+
+## Departments
+{departments}
 
 # Output
 Output your response as JSON. If the answer to the user involves a set of people, then include
@@ -26,17 +32,19 @@ a view object with a list of employee ids and a descriptive title.
 * Don't include lists of employees in the text response. Only include aggregate data like the counts
 and reference the returned visualzation if relevant.
 * The only view type supported is "list". If you return a view then it must include this.
+* Keep answers concise and grounded in the tool results.
+* Only respond to the user's original question, do not suggest follow-up questions.
 
 ## Format
-{
+{{
     "response": string, // The text answer to the user's question.
     "reasoning": string, // The reasoning that led you to the answer and view
-    "view": null | {
+    "view": null | {{
         "type": "list",
         "title": string, // A descriptive title for the view.
         "data": int[], // A list of employee ids.
-    },
-}
+    }},
+}}
 """.strip()
 
 SEARCH_PEOPLE_TOOL = {
@@ -90,6 +98,12 @@ class OpenAIChatService:
         self._connection = connection
         self._model = settings.openai_model
 
+    def _build_system_prompt(self) -> str:
+        return SYSTEM_PROMPT.format(
+            locations=json.dumps(get_locations(self._connection), indent=2),
+            departments=json.dumps(get_departments(self._connection), indent=2),
+        )
+
     def run(self, messages: list[Message]) -> ChatResponse:
         input_items = [self._message_to_input_item(message) for message in messages]
 
@@ -98,7 +112,7 @@ class OpenAIChatService:
             request_kwargs = {
                 "model": self._model,
                 "input": input_items,
-                "instructions": SYSTEM_PROMPT,
+                "instructions": self._build_system_prompt(),
                 "tools": [SEARCH_PEOPLE_TOOL],
             }
 

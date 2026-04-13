@@ -137,3 +137,25 @@ def search_employees(
 
     cursor = connection.execute(query)
     return [dict(row) for row in cursor.mappings().all()]
+
+
+cached_locations = None
+cached_departments = None
+
+
+def get_locations(connection: Connection) -> list[str]:
+    global cached_locations
+    if cached_locations is None:
+        cursor = connection.execute(select(func.distinct(employees_table.c.work_location)))
+        cached_locations = [row[0] for row in cursor.all()]
+    print("Cached locations:\n", json.dumps(cached_locations, indent=2))
+    return cached_locations
+
+
+def get_departments(connection: Connection) -> list[str]:
+    global cached_departments
+    if cached_departments is None:
+        cursor = connection.execute(select(func.distinct(employees_table.c.department)))
+        cached_departments = [row[0] for row in cursor.all()]
+    print("Cached departments:\n", json.dumps(cached_departments, indent=2))
+    return cached_departments
